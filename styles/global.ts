@@ -5,8 +5,6 @@ export const globalStyles = StyleSheet.create({
     container: {
       backgroundColor: colors.green, // Usando cor global
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     text: {
       fontSize: 16,
