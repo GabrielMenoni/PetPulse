@@ -1,22 +1,25 @@
 import React from "react";
-import { View, TextInput, Text, StyleSheet, Button, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors } from '../styles/colors';
-import { Image } from 'react-native';
 import PenIcon from '../assets/Images/PenIcon.svg';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../App';
 
 const AddPetButton: React.FC = () => {
+    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
     const handleAddPet = () => {
-        console.log('Adicionar pet');
-    }
+        navigation.navigate('BluetoothConnect');
+    };
 
     return (
         <TouchableOpacity onPress={handleAddPet} style={styles.container}>
             <PenIcon width={24} height={24} />
             <Text style={styles.text}>Adicionar pet</Text>
         </TouchableOpacity>
-    )
-}
+    );
+};
 
 const styles = StyleSheet.create({
     container: {

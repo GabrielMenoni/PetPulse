@@ -6,10 +6,12 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import { globalStyles } from './styles/global'; // Importando os estilos globais
 import HomeScreen from './screens/HomeScreen';
 import DetailsScreen from './screens/DetailsScreen';
+import BluetoothConnect from './screens/BluetoothConnect';
 
 export type RootStackParamList = {
   Home: undefined;
   Details: { id: number }; // Parâmetro opcional
+  BluetoothConnect: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -42,6 +44,12 @@ export default function App() {
           component={DetailsScreen}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="BluetoothConnect"
+          component={BluetoothConnect}
+          options={{ headerShown: false }}
+        />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
