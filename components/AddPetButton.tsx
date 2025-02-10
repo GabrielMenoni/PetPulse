@@ -1,7 +1,7 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors } from '../styles/colors';
-import PenIcon from '../assets/Images/PenIcon.svg';
+import PenIcon from '../assets/images/PenIcon.svg';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
@@ -29,8 +29,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         gap: 10,
-        backgroundColor: colors['blue'],
-        borderRadius: 16,
+        backgroundColor: colors.blue,
+        borderRadius: 8,
         padding: 5,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         textAlignVertical: 'center',
         height: 54,
-    }
+    },
 });
 
 export default AddPetButton;

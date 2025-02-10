@@ -1,17 +1,12 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
-import { StackScreenProps } from '@react-navigation/stack';
+import { View, Text, StyleSheet } from 'react-native';
 import { globalStyles } from '../styles/global'; // Importando os estilos globais
-import { RootStackParamList } from '../App';
 import SearchBar from '../components/SearchBar';
 import AddPetButton from '../components/AddPetButton';
-import { Image } from 'react-native';
 import { colors } from '../styles/colors';
-import LogoSVG from '../assets/Images/Logo.svg';
+import LogoSVG from '../assets/images/Logo.svg';
 
-type Props = StackScreenProps<RootStackParamList, 'Home'>;
-
-export default function HomeScreen({ navigation }: Props) {
+export default function HomeScreen() {
   return (
     <View style={[globalStyles.container, styles.wrap]}>
       <SearchBar onSearch={(query) => console.log(query)} />
@@ -52,7 +47,7 @@ const styles = StyleSheet.create({
   BigText: {
     fontSize: 30,
     fontWeight: 'medium',
-    color: colors['white'],
+    color: colors.white,
     textAlign: 'center',
     textShadowColor: 'rgba(255, 255, 255, 0.1)',
     textShadowOffset: { width: 1, height: 1 }, // Deslocamento da sombra (horizontal, vertical)

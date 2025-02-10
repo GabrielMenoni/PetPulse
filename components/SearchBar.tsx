@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, StyleSheet } from 'react-native';
+import { View, TextInput, StyleSheet } from 'react-native';
 import { colors } from '../styles/colors';
+import { green } from 'react-native-reanimated/lib/typescript/Colors';
 
 interface SearchBarProps {
   placeholder?: string;
   onSearch: (query: string) => void;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "PetPulse", onSearch }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ placeholder = 'PetPulse', onSearch }) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const handleChange = (text: string) => {
@@ -20,6 +21,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "PetPulse", onSearc
       <TextInput
         style={styles.input}
         placeholder={placeholder}
+        placeholderTextColor={'#ccc'}
         value={searchQuery}
         onChangeText={handleChange}
       />
@@ -48,7 +50,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     fontSize: 20,
     fontWeight: 'bold',
-  }
+  },
 });
 
 export default SearchBar;
