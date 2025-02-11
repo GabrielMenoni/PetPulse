@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Linking, TouchableOpacity, PermissionsAndroid } from 'react-native';
+import { View, Text, StyleSheet, Linking, TouchableOpacity, PermissionsAndroid, FlatList } from 'react-native';
 import { globalStyles } from '../styles/global';
 import { colors } from '../styles/colors';
 import BluetoothSVG from '../assets/images/bluetooth-svgrepo-com.svg';
@@ -7,6 +7,7 @@ import { BleManager } from 'react-native-ble-plx';
 
 const BluetoothConnect = ({ navigation }: any) => {
   const [isConnected, setIsConnected] = useState(false);
+  const [pairedDevices, setPairedDevices] = useState<any[]>([]);
   const manager = new BleManager();
 
   useEffect(() => {
@@ -37,6 +38,8 @@ const BluetoothConnect = ({ navigation }: any) => {
     }
   };
 
+  console.log(pairedDevices);
+
   const openBluetoothSettings = async () => {
     try {
       setTimeout(() => {
@@ -54,10 +57,21 @@ const BluetoothConnect = ({ navigation }: any) => {
         return;
       }
 
+      // Verifica se o dispositivo tem nome e adiciona ao estado
+      if (device?.name) {
+        setPairedDevices((prevDevices) => {
+          if (!prevDevices.some((d) => d.id === device.id)) {
+            return [...prevDevices, device];
+          }
+          return prevDevices;
+        });
+      }
+
       // Substitua com o ID ou nome do seu dispositivo Bluetooth
       if (device!.name === 'PetPulse') {
         manager.stopDeviceScan();
         connectToDevice(device);
+        console.log('Device found:', device);
       }
     });
   };
@@ -89,6 +103,17 @@ const BluetoothConnect = ({ navigation }: any) => {
       <TouchableOpacity onPress={() => { navigation.navigate('Home'); }} style={styles.button}>
         <Text style={styles.text}>Voltar a home</Text>
       </TouchableOpacity>
+
+      {/* Lista os dispositivos pareados */}
+      <FlatList
+        data={pairedDevices}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.deviceItem}>
+            <Text style={styles.deviceText}>{item.name}</Text>
+          </View>
+        )}
+      />
     </View>
   );
 };
@@ -142,6 +167,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textAlignVertical: 'center',
     height: 54,
+  },
+
+  deviceItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.white,
+  },
+
+  deviceText: {
+    color: colors.white,
+    fontSize: 16,
   },
 });
 
