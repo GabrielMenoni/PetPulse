@@ -6,7 +6,7 @@ import AddPetButton from '../components/AddPetButton';
 import { colors } from '../styles/colors';
 import LogoSVG from '../assets/images/Logo.svg';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Importando AsyncStorage
-import { PetProps } from '../types'; // Importando o tipo PetProps
+import { PetProps } from '../utils/interfaces';
 import PetCard  from '../components/PetCard';
 
 export default function HomeScreen() {

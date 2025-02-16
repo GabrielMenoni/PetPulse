@@ -3,14 +3,30 @@ import { PetProps } from '../utils/interfaces';
 import { TouchableOpacity, Image, StyleSheet, View, Text } from 'react-native';
 import HeartSVG from '../assets/images/BsHeartPulse.svg';
 import { colors } from '../styles/colors';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../App'; // Ajuste o caminho conforme necessário
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+type PetInfosNavigationProp = NavigationProp<RootStackParamList, 'PetInfos'>;
 
 interface PetCardProps {
   pet: PetProps;  // Defina o tipo para a propriedade 'pet' como PetProps
 }
 
 function PetCard({ pet }: PetCardProps) {  // Agora 'pet' é passado como uma propriedade
+  const navigation = useNavigation<PetInfosNavigationProp>();  // Tipagem correta da navegação
+
+  async function handlePress() {
+    try {
+      await AsyncStorage.setItem('petInfo', JSON.stringify(pet)); // Salvar os dados
+      navigation.navigate('PetInfos'); // Voltar para a tela Home
+    } catch (e) {
+      console.error('Error saving pet data: ', e);
+    }
+  }
+
   return (
-    <TouchableOpacity style={styles.wrap}>
+    <TouchableOpacity style={styles.wrap} onPress={handlePress}>
       <View style={styles.cardContent}>
         <Image source={{ uri: pet.image }} style={styles.image} />
         <View style={styles.textContent}>

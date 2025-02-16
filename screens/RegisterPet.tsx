@@ -113,7 +113,7 @@ const RegisterPet: React.FC = () => {
     <ScrollView style={styles.scrollContainer}>
       <View style={[globalStyles.container, styles.wrap]}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => {navigation.navigate('Home');}}>
+          <TouchableOpacity onPress={() => {navigation.goBack();}}>
             <VoltarSVG />
           </TouchableOpacity>
           <LogoSVG height={50} width={50} />

@@ -1,122 +1,153 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Linking, TouchableOpacity, PermissionsAndroid, FlatList } from 'react-native';
-import { globalStyles } from '../styles/global';
-import { colors } from '../styles/colors';
+import React, { FC, useCallback } from 'react';
+import {
+  FlatList,
+  ListRenderItemInfo,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { Device } from 'react-native-ble-plx';
 import BluetoothSVG from '../assets/images/bluetooth-svgrepo-com.svg';
-import { BleManager } from 'react-native-ble-plx';
+import { colors } from '../styles/colors';
+import { globalStyles } from '../styles/global';
+import { useNavigation } from '@react-navigation/native';
 
-const BluetoothConnect = ({ navigation }: any) => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [pairedDevices, setPairedDevices] = useState<any[]>([]);
-  const manager = new BleManager();
+type DeviceModalListItemProps = {
+  item: ListRenderItemInfo<Device>;
+  connectToPeripheral: (device: Device) => void;
+  closeModal: () => void;
+};
 
-  useEffect(() => {
-    requestPermissions();
-  }, []);
+type DeviceModalProps = {
+  devices: Device[];
+  connectToPeripheral: (device: Device) => void;
+  closeModal: () => void;
+};
 
-  const requestPermissions = async () => {
-    try {
-      const granted = await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      ]);
+const DeviceModalListItem: FC<DeviceModalListItemProps> = (props) => {
+  const { item, connectToPeripheral, closeModal } = props;
 
-      if (
-        granted['android.permission.BLUETOOTH_SCAN'] === PermissionsAndroid.RESULTS.GRANTED &&
-        granted['android.permission.BLUETOOTH_CONNECT'] === PermissionsAndroid.RESULTS.GRANTED &&
-        granted['android.permission.ACCESS_FINE_LOCATION'] === PermissionsAndroid.RESULTS.GRANTED
-      ) {
-        console.log('Bluetooth permissions granted');
-        openBluetoothSettings();
-        scanForDevices();
-      } else {
-        console.log('Bluetooth permissions denied');
-      }
-    } catch (err) {
-      console.warn(err);
-    }
-  };
+  const connectAndCloseModal = useCallback(() => {
+    connectToPeripheral(item.item);
+    closeModal();
+  }, [closeModal, connectToPeripheral, item.item]);
 
-  console.log(pairedDevices);
+  return (
+    <TouchableOpacity
+      onPress={connectAndCloseModal}
+      style={modalStyle.ctaButton}
+    >
+      <Text style={modalStyle.ctaButtonText}>{item.item.name}</Text>
+    </TouchableOpacity>
+  );
+};
 
-  const openBluetoothSettings = async () => {
-    try {
-      setTimeout(() => {
-        Linking.sendIntent('android.settings.BLUETOOTH_SETTINGS');
-      }, 1000);
-    } catch (error) {
-      console.error('Error opening Bluetooth settings:', error);
-    }
-  };
+function BluetoothConnect (props: { route: { params: DeviceModalProps } }) {
+  const { devices, connectToPeripheral, closeModal } = props.route.params;
 
-  const scanForDevices = () => {
-    manager.startDeviceScan(null, null, (error, device) => {
-      if (error) {
-        console.error('Bluetooth scan error', error);
-        return;
-      }
+  console.log(devices);
 
-      // Verifica se o dispositivo tem nome e adiciona ao estado
-      if (device?.name) {
-        setPairedDevices((prevDevices) => {
-          if (!prevDevices.some((d) => d.id === device.id)) {
-            return [...prevDevices, device];
-          }
-          return prevDevices;
-        });
-      }
+  const navigation = useNavigation();
 
-      // Substitua com o ID ou nome do seu dispositivo Bluetooth
-      if (device!.name === 'PetPulse') {
-        manager.stopDeviceScan();
-        connectToDevice(device);
-        console.log('Device found:', device);
-      }
-    });
-  };
-
-  const connectToDevice = async (device: any) => {
-    try {
-      await device.connect();
-      setIsConnected(true);
-    } catch (error) {
-      console.error('Error connecting to device', error);
-    }
-  };
-
-  useEffect(() => {
-    if (isConnected) {
-      navigation.navigate('RegisterPet');
-    }
-  }, [isConnected]);
+  const renderDeviceModalListItem = useCallback(
+    (item: ListRenderItemInfo<Device>) => {
+      return (
+        <DeviceModalListItem
+          item={item}
+          connectToPeripheral={connectToPeripheral}
+          closeModal={closeModal}
+        />
+      );
+    },
+    [closeModal, connectToPeripheral]
+  );
 
   return (
     <View style={[globalStyles.container, styles.wrap]}>
       <View style={styles.container}>
         <BluetoothSVG width={200} height={200} color={'#fff'} />
         <Text style={[globalStyles.text, styles.title]}>
-          Aguardando a conexão bluetooth com a coleira PetPulse
+          {devices.length > 0 ? 'Escolha o dispositivo a se conectar' : 'Nenhuma conexão encontrada, verifique se seu bluetooth está ativo.'}
         </Text>
+
+        { devices.length > 0 && (
+          <FlatList
+          contentContainerStyle={modalStyle.modalFlatlistContiner}
+          data={devices}
+          renderItem={renderDeviceModalListItem}
+        />
+        )}
       </View>
 
       <TouchableOpacity onPress={() => { navigation.navigate('Home'); }} style={styles.button}>
         <Text style={styles.text}>Voltar a home</Text>
       </TouchableOpacity>
-
-      {/* Lista os dispositivos pareados */}
-      <FlatList
-        data={pairedDevices}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.deviceItem}>
-            <Text style={styles.deviceText}>{item.name}</Text>
-          </View>
-        )}
-      />
     </View>
   );
-};
+}
+
+{/* <Modal
+      style={modalStyle.modalContainer}
+      animationType="slide"
+      transparent={false}
+      visible={visible}
+    >
+      <SafeAreaView style={modalStyle.modalTitle}>
+        <Text style={modalStyle.modalTitleText}>
+          Tap on a device to connect
+        </Text>
+        <FlatList
+          contentContainerStyle={modalStyle.modalFlatlistContiner}
+          data={devices}
+          renderItem={renderDeviceModalListItem}
+        />
+      </SafeAreaView>
+    </Modal> */}
+
+const modalStyle = StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#f2f2f2',
+  },
+  modalFlatlistContiner: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  modalCellOutline: {
+    borderWidth: 1,
+    borderColor: 'black',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    paddingVertical: 15,
+    borderRadius: 8,
+  },
+  modalTitle: {
+    flex: 1,
+    backgroundColor: '#f2f2f2',
+  },
+  modalTitleText: {
+    marginTop: 40,
+    fontSize: 30,
+    fontWeight: 'bold',
+    marginHorizontal: 20,
+    textAlign: 'center',
+  },
+  ctaButton: {
+    backgroundColor: '#FF6060',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 50,
+    marginHorizontal: 20,
+    marginBottom: 5,
+    borderRadius: 8,
+  },
+  ctaButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+});
 
 const styles = StyleSheet.create({
   wrap: {
@@ -135,7 +166,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: 'medium',
     color: colors.white,
     textAlign: 'center',

@@ -10,7 +10,7 @@ const AddPetButton: React.FC = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
     const handleAddPet = () => {
-        navigation.navigate('BluetoothConnect');
+        navigation.navigate('RegisterPet');
     };
 
     return (
