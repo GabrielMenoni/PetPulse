@@ -56,6 +56,19 @@ function PetInfos() {
     loadPet();
   }, []);
 
+  async function handleEdit() {
+    await AsyncStorage.setItem('petEdit', JSON.stringify(pet));
+    navigation.navigate('RegisterPet');
+  }
+
+  async function handleDelete() {
+    await AsyncStorage.removeItem('petData');
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Home' }],
+    });
+  }
+
   return (
     <ScrollView style={[styles.scrollContainer, globalStyles.container]}>
       <View style={[globalStyles.container, styles.wrap]}>
@@ -64,8 +77,11 @@ function PetInfos() {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <VoltarSVG />
           </TouchableOpacity>
-          <LogoSVG height={50} width={50} />
-          <View style={{ width: 45 }} />
+          <LogoSVG height={50} width={50} style={{marginLeft: 35}} />
+          <View style={{display: 'flex', flexDirection: 'row', gap: 10}}>
+            <Pencil width={30} height={30}  onTouchStart={handleEdit}/>
+            <Trash width={30} height={30} onTouchStart={handleDelete} />
+          </View>
         </View>
 
         {/* Main Info */}
@@ -90,24 +106,6 @@ function PetInfos() {
         <View style={styles.GraphContainer}>
           <BPMGraph data={BPM} />
         </View>
-
-        {/* Buttons */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button}>
-            <LogOut width={40} height={40} />
-            <Text style={[globalStyles.text, styles.buttonText]}>Desconectar</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.button}>
-            <Pencil width={40} height={40} />
-            <Text style={[globalStyles.text, styles.buttonText]}>Editar perfil</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.button}>
-            <Trash width={40} height={40} />
-            <Text style={[globalStyles.text, styles.buttonText]}>Excluir perfil</Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </ScrollView>
   );
@@ -121,7 +119,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     paddingRight: 20,
     paddingLeft: 20,
-    paddingTop: 55,
+    paddingTop: 50,
     paddingBottom: 55,
   },
   header: {

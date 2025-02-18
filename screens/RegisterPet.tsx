@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, FlatList, Image, ScrollView, Alert } from 'react-native';
 import { globalStyles } from '../styles/global';
 import { colors } from '../styles/colors';
@@ -24,6 +24,29 @@ const RegisterPet: React.FC = () => {
   const [yearModalVisible, setYearModalVisible] = useState(false);
   const [monthModalVisible, setMonthModalVisible] = useState(false);
   const [sizeModalVisible, setSizeModalVisible] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+
+  useEffect(() => {
+
+    async function getData() {
+      const savedPetData = await AsyncStorage.getItem('petEdit');
+      if(savedPetData){
+        const PetData: PetProps = JSON.parse(savedPetData);
+        setEditMode(true);
+        setName(PetData.name);
+        setBreed(PetData.breed);
+        setPetType(PetData.type);
+        setBirthYear(PetData.birthday.split('/')[0]);
+        setBirthMonth(PetData.birthday.split('/')[1]);
+        setSize(PetData.size);
+        setPhoto(PetData.image);
+
+        await AsyncStorage.removeItem('petEdit');
+      }
+    }
+
+    getData();
+  }, []);
 
   const navigation = useNavigation();
 
@@ -54,7 +77,7 @@ const RegisterPet: React.FC = () => {
   };
 
   // Options for Year, Month, and Size
-  const years = Array.from({ length: 26 }, (_, i) => (2000 + i).toString());
+  const years = Array.from({ length: 26 }, (_, i) => (2025 - i).toString());
   const months = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
@@ -86,9 +109,21 @@ const RegisterPet: React.FC = () => {
   };
 
   const savePetData = async () => {
-    if (!name || !petType || !breed || !birthYear || !birthMonth || !size || !photo) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos');
-        return;
+    const fields = [
+      { value: petType, message: 'Por favor, selecione o tipo de pet' },
+      { value: name, message: 'Por favor, preencha o campo Nome' },
+      { value: breed, message: 'Por favor, preencha o campo Raça' },
+      { value: birthYear, message: 'Por favor, selecione o ano de nascimento' },
+      { value: birthMonth, message: 'Por favor, selecione o mês de nascimento' },
+      { value: size, message: 'Por favor, selecione o porte' },
+      { value: photo, message: 'Por favor, adicione uma foto' },
+    ];
+
+    const invalidField = fields.find(field => !field.value);
+
+    if (invalidField) {
+      Alert.alert('Erro', invalidField.message);
+      return;
     }
 
     const petData: PetProps = {
@@ -120,24 +155,20 @@ const RegisterPet: React.FC = () => {
           <View style={{ width: 45 }} />
         </View>
         <View>
-          <Text style={[globalStyles.text, styles.text]}>Conte-nos sobre seu pet:</Text>
 
-          {/* Nome Input */}
-          <TouchableOpacity style={styles.input} onPress={() => handleFocus(nameInputRef)}>
-            <Text style={[globalStyles.text, styles.inputPlaceholder]}>Nome</Text>
-            <TextInput
-              ref={nameInputRef} // Atribuindo a referência para o Nome
-              style={[globalStyles.text, styles.inputText]}
-              onChange={(e) => setName(e.nativeEvent.text)}
-            />
-          </TouchableOpacity>
+        <Text style={[globalStyles.text, styles.title, {marginBottom: 15}]}>{editMode ? 'Edite seu pet!' : 'Vamos cadastrar seu pet!'}</Text>
 
-          {/* Tipo de Pet (Cachorro ou Gato) */}
+        {/* Tipo de Pet (Cachorro ou Gato) */}
+        <Text style={[globalStyles.text, styles.text, {marginBottom: 15}]}>
+          <Text style={{ color: 'red' }}>*</Text> Selecione o tipo de pet</Text>
           <View style={styles.radioContainer}>
             <TouchableOpacity
               style={[styles.radioButton, petType === 'Cachorro' && styles.selectedRadio]}
               onPress={() => handleSelectPetType('Cachorro')}
             >
+              <View style={[styles.radioCircle, petType === 'Cachorro' && styles.selectedCircle]}>
+                {petType === 'Cachorro' && <View style={styles.selectedInnerCircle} />}
+              </View>
               <Text style={[styles.radioButtonText, petType === 'Cachorro' && styles.radioButtonTextSelected]}>Cachorro</Text>
             </TouchableOpacity>
 
@@ -145,35 +176,61 @@ const RegisterPet: React.FC = () => {
               style={[styles.radioButton, petType === 'Gato' && styles.selectedRadio]}
               onPress={() => handleSelectPetType('Gato')}
             >
+              <View style={[styles.radioCircle, petType === 'Gato' && styles.selectedCircle]}>
+                {petType === 'Gato' && <View style={styles.selectedInnerCircle} />}
+              </View>
               <Text style={[styles.radioButtonText, petType === 'Gato' && styles.radioButtonTextSelected]}>Gato</Text>
             </TouchableOpacity>
           </View>
 
+          <Text style={[globalStyles.text, styles.text, {marginTop: 10}]}>Conte-nos sobre seu pet:</Text>
+
+          {/* Nome Input */}
+          <TouchableOpacity style={styles.input} onPress={() => handleFocus(nameInputRef)}>
+            <Text style={[globalStyles.text, styles.inputPlaceholder]}>
+              <Text style={{ color: 'red' }}>*</Text> Nome</Text>
+            <TextInput
+              ref={nameInputRef} // Atribuindo a referência para o Nome
+              style={[globalStyles.text, styles.inputText]}
+              onChange={(e) => setName(e.nativeEvent.text)}
+              placeholder="Ex: Rex"
+              placeholderTextColor={'#939393'}
+              value={name}
+            />
+          </TouchableOpacity>
+
           {/* Raça Input */}
           <TouchableOpacity style={[styles.input]} onPress={() => handleFocus(breedInputRef)}>
-            <Text style={[globalStyles.text, styles.inputPlaceholder]}>Raça</Text>
+            <Text style={[globalStyles.text, styles.inputPlaceholder]}>
+            <Text style={{ color: 'red' }}>*</Text> Raça</Text>
             <TextInput
               ref={breedInputRef} // Atribuindo a referência para a Raça
               style={[globalStyles.text, styles.inputText]}
               onChange={(e) => setBreed(e.nativeEvent.text)}
+              placeholder="Ex: Labrador"
+              placeholderTextColor={'#939393'}
+              value={breed}
             />
           </TouchableOpacity>
 
           {/* Ano de Nascimento Input */}
           <TouchableOpacity style={styles.input} onPress={() => setYearModalVisible(true)}>
-            <Text style={[globalStyles.text, styles.inputPlaceholder]}>Ano de Nascimento</Text>
+            <Text style={[globalStyles.text, styles.inputPlaceholder]}>
+            <Text style={{ color: 'red' }}>*</Text> Ano de Nascimento</Text>
             <Text style={[globalStyles.text, styles.inputText]}>{birthYear || 'Selecione o Ano'}</Text>
           </TouchableOpacity>
 
           {/* Mês de Nascimento Input */}
           <TouchableOpacity style={styles.input} onPress={() => setMonthModalVisible(true)}>
-            <Text style={[globalStyles.text, styles.inputPlaceholder]}>Mês de Nascimento</Text>
+            <Text style={[globalStyles.text, styles.inputPlaceholder]}>
+            <Text style={{ color: 'red' }}>*</Text> Mês de Nascimento</Text>
             <Text style={[globalStyles.text, styles.inputText]}>{birthMonth || 'Selecione o Mês'}</Text>
           </TouchableOpacity>
 
           {/* Porte Input */}
           <TouchableOpacity style={styles.input} onPress={() => setSizeModalVisible(true)}>
-            <Text style={[globalStyles.text, styles.inputPlaceholder]}>Porte</Text>
+            <Text style={[globalStyles.text, styles.inputPlaceholder]}>
+            <Text style={{ color: 'red' }}>*</Text> Porte</Text>
             <Text style={[globalStyles.text, styles.inputText]}>{size || 'Selecione o Porte'}</Text>
           </TouchableOpacity>
 
@@ -182,7 +239,7 @@ const RegisterPet: React.FC = () => {
             {photo && (
               <Image source={{ uri: photo }} style={[styles.inputImage, { backgroundColor: 'transparent' }]} />
             )}
-            <Text style={[globalStyles.text, {textAlign: 'center', marginBottom: 5}]}>{photo ? '' : 'Adicionar Foto'}</Text>
+            <Text style={[globalStyles.text, {textAlign: 'center', marginBottom: 5}]}>{photo ? '' : (<><Text style={{ color: 'red' }}>* </Text> Adicionar Foto</>)}</Text>
             {photo ? null : <CameraSVG width={80} height={80} />}
           </TouchableOpacity>
         </View>
@@ -275,8 +332,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  text: {
+  title: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    textAlign: 'center',
     color: colors.white,
+    paddingBottom: 10,
+    paddingTop: 10,
+  },
+  text: {
+    color: colors['light-blue'],
     fontSize: 24,
     fontWeight: 'bold',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
@@ -317,31 +382,44 @@ const styles = StyleSheet.create({
   },
   radioContainer: {
     display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    width: '100%',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   radioButton: {
-    backgroundColor: colors.white,
-    width: '40%',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 10,
-    borderRadius: 8,
     marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 5,
+    width: '100%',
+    backgroundColor: colors.white,
+    borderRadius: 8,
   },
-  selectedRadio: {
-    backgroundColor: colors.blue,
+  radioCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 50,  // Fazendo o círculo
+    borderWidth: 2,
+    borderColor: colors.blue,  // Cor do círculo padrão
+    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectedCircle: {
+    backgroundColor: colors.blue, // Cor de fundo quando selecionado
+  },
+  selectedInnerCircle: {
+    width: 12,
+    height: 12,
+    borderRadius: 50,
+    backgroundColor: colors.blue,  // Círculo interno branco quando selecionado
   },
   radioButtonText: {
     fontSize: 18,
     color: '#000',
     textAlign: 'center',
-  },
-  radioButtonTextSelected: {
-    color: colors.white,
   },
   modalContainer: {
     flex: 1,

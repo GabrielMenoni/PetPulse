@@ -11,6 +11,8 @@ import PetCard  from '../components/PetCard';
 
 export default function HomeScreen() {
   const [pets, setPets] = useState<PetProps[]>([]); // Estado para armazenar os pets
+  const [filteredPets, setFilteredPets] = useState<PetProps[]>([]); // Estado para armazenar pets filtrados
+  const [searchQuery, setSearchQuery] = useState<string>(''); // Estado para armazenar a consulta de pesquisa
 
   useEffect(() => {
     // Função para carregar os pets salvos
@@ -21,43 +23,42 @@ export default function HomeScreen() {
           const pets = JSON.parse(savedPets); // Converter para objeto
           // Garantir que pets seja um array, caso seja um único objeto, transformá-lo em um array
           const petsArray = Array.isArray(pets) ? pets : [pets];
-          console.log(petsArray); // Exibir no console
           setPets(petsArray); // Atualizar o estado com os pets
+          setFilteredPets(petsArray); // Inicializar os pets filtrados
         } else {
-          console.log('Nenhum pet encontrado'); // Exibir no console
           setPets([]); // Garantir que o estado seja um array vazio se não houver pets
+          setFilteredPets([]); // Garantir que o estado filtrado seja um array vazio
         }
       } catch (error) {
         console.error('Erro ao carregar os pets: ', error);
       }
     };
 
-    const removeAllPets = async () => {
-      try {
-        await AsyncStorage.removeItem('petData'); // Remove a chave 'petData' do AsyncStorage
-        console.log('Todos os pets foram removidos.');
-      } catch (error) {
-        console.error('Erro ao remover os pets: ', error);
-      }
-    };
-
     loadPets(); // Chamar a função para carregar os pets ao carregar a tela
-    //removeAllPets(); // Remover todos os pets ao carregar a tela
-
   }, []);
 
+  // Função para filtrar os pets com base na pesquisa
+  const handleSearch = (query: string) => {
+    setSearchQuery(query); // Atualizar o estado da consulta
+    const filtered = pets.filter((pet) =>
+      pet.name.toLowerCase().includes(query.toLowerCase()) // Filtrando pets pelo nome
+    );
+    setFilteredPets(filtered); // Atualizar a lista filtrada
+  };
+
   const getContent = () => {
-    if (pets.length === 0) {
+    if (filteredPets.length === 0) {
       return (
         <View style={styles.NoAnimals}>
           <LogoSVG />
-          <Text style={[globalStyles.text, styles.BigText]}>Nenhum animal adicionado até o momento</Text>
+          <Text style={[globalStyles.text, styles.BigText]}>
+            Nenhum animal encontrado</Text>
         </View>
       );
     } else {
       return (
         <View style={{ width: '90%' }}>
-          {pets.map((pet, index) => (
+          {filteredPets.map((pet, index) => (
             <PetCard key={index} pet={pet} />
           ))}
         </View>
@@ -67,7 +68,7 @@ export default function HomeScreen() {
 
   return (
     <View style={[globalStyles.container, styles.wrap]}>
-      <SearchBar onSearch={(query) => console.log(query)} />
+      <SearchBar onSearch={handleSearch} value={searchQuery} /> {/* Passando a consulta e função de busca */}
       {getContent()}
       <AddPetButton />
     </View>

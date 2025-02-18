@@ -32,8 +32,7 @@ function PetCard({ pet }: PetCardProps) {  // Agora 'pet' é passado como uma pr
         <View style={styles.textContent}>
           <Text style={styles.petName}>{pet.name}, {pet.breed}</Text>
           <View style={styles.infos}>
-            <HeartSVG />
-            <Text style={styles.bpm}>112 bpm</Text>
+            <Text style={styles.bpm}>Aperte para mais opções</Text>
           </View>
         </View>
       </View>
@@ -82,8 +81,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   bpm: {
-    color: '#000',
-    fontSize: 20,
+    color: colors['light-blue'],
+    fontSize: 14,
     textAlign: 'center',
   },
 });

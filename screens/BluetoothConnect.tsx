@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  Alert,
 } from 'react-native';
 import { Device } from 'react-native-ble-plx';
 import BluetoothSVG from '../assets/images/bluetooth-svgrepo-com.svg';
@@ -26,6 +27,7 @@ type DeviceModalProps = {
 };
 
 const DeviceModalListItem: FC<DeviceModalListItemProps> = (props) => {
+  const navigation = useNavigation();
   const { item, connectToPeripheral, closeModal } = props;
 
   const connectAndCloseModal = useCallback(() => {
@@ -33,9 +35,18 @@ const DeviceModalListItem: FC<DeviceModalListItemProps> = (props) => {
     closeModal();
   }, [closeModal, connectToPeripheral, item.item]);
 
+  const mockPress = () => {
+    if(item.item.name !== 'PetPulse') {
+      Alert.alert('O dispositivo selecionado não possui suporte para o PetPulse.');
+      return;
+    }
+
+    navigation.navigate('RegisterPet');
+  };
+
   return (
     <TouchableOpacity
-      onPress={connectAndCloseModal}
+      onPress={mockPress}
       style={modalStyle.ctaButton}
     >
       <Text style={modalStyle.ctaButtonText}>{item.item.name}</Text>
@@ -44,9 +55,91 @@ const DeviceModalListItem: FC<DeviceModalListItemProps> = (props) => {
 };
 
 function BluetoothConnect (props: { route: { params: DeviceModalProps } }) {
-  const { devices, connectToPeripheral, closeModal } = props.route.params;
+  let { devices, connectToPeripheral, closeModal } = props.route.params;
 
-  console.log(devices);
+  //Devices Mock
+  devices = [
+    {
+      id: '00:11:22:33:44:55',
+      name: 'PetPulse',
+      rssi: -50,
+      mtu: 23,
+      manufacturerData: 'Q29tcGFueU5hbWU=', // Base64 encoded
+      rawScanRecord: 'UmF3U2NhbkRhdGE=', // Base64 encoded
+      serviceData: {
+        '1234-5678-9012': 'U2VydmljZURhdGE=',
+      },
+      serviceUUIDs: ['1234-5678-9012'],
+      localName: 'Device_A_Local',
+      txPowerLevel: 4,
+      solicitedServiceUUIDs: null,
+      isConnectable: true,
+      overflowServiceUUIDs: null,
+
+      // Métodos Mockados
+      requestConnectionPriority: async () => devices[0],
+      readRSSI: async () => devices[0],
+      requestMTU: async (mtu: number) => {
+        devices[0].mtu = mtu;
+        return devices[0];
+      },
+      connect: async () => devices[0],
+      cancelConnection: async () => devices[0],
+      isConnected: async () => true,
+      onDisconnected: () => ({ remove: () => {} }),
+      discoverAllServicesAndCharacteristics: async () => devices[0],
+      services: async () => [],
+      characteristicsForService: async () => [],
+      descriptorsForService: async () => [],
+      readCharacteristicForService: async () => ({} as any),
+      writeCharacteristicWithResponseForService: async () => ({} as any),
+      writeCharacteristicWithoutResponseForService: async () => ({} as any),
+      monitorCharacteristicForService: () => ({ remove: () => {} }),
+      readDescriptorForService: async () => ({} as any),
+      writeDescriptorForService: async () => ({} as any),
+    },
+    {
+      id: 'AA:BB:CC:DD:EE:FF',
+      name: 'Relógio Inteligente',
+      rssi: -60,
+      mtu: 23,
+      manufacturerData: 'TWFudWZhY3R1cmVyX0JfRGF0YQ==', // Base64 encoded
+      rawScanRecord: 'UmF3U2NhbkRhdGJfQnJhbmQ=', // Base64 encoded
+      serviceData: {
+        '5678-9012-3456': 'U2VydmljZURhdGJfQnJhbmQ=',
+      },
+      serviceUUIDs: ['5678-9012-3456'],
+      localName: 'Device_B_Local',
+      txPowerLevel: 3,
+      solicitedServiceUUIDs: null,
+      isConnectable: false,
+      overflowServiceUUIDs: null,
+
+      // Métodos Mockados
+      requestConnectionPriority: async () => devices[1],
+      readRSSI: async () => devices[1],
+      requestMTU: async (mtu: number) => {
+        devices[1].mtu = mtu;
+        return devices[1];
+      },
+      connect: async () => devices[1],
+      cancelConnection: async () => devices[1],
+      isConnected: async () => false,
+      onDisconnected: () => ({ remove: () => {} }),
+      discoverAllServicesAndCharacteristics: async () => devices[1],
+      services: async () => [],
+      characteristicsForService: async () => [],
+      descriptorsForService: async () => [],
+      readCharacteristicForService: async () => ({} as any),
+      writeCharacteristicWithResponseForService: async () => ({} as any),
+      writeCharacteristicWithoutResponseForService: async () => ({} as any),
+      monitorCharacteristicForService: () => ({ remove: () => {} }),
+      readDescriptorForService: async () => ({} as any),
+      writeDescriptorForService: async () => ({} as any),
+    },
+  ];
+
+  console.log('devices: ', devices);
 
   const navigation = useNavigation();
 
@@ -87,63 +180,32 @@ function BluetoothConnect (props: { route: { params: DeviceModalProps } }) {
   );
 }
 
-{/* <Modal
-      style={modalStyle.modalContainer}
-      animationType="slide"
-      transparent={false}
-      visible={visible}
-    >
-      <SafeAreaView style={modalStyle.modalTitle}>
-        <Text style={modalStyle.modalTitleText}>
-          Tap on a device to connect
-        </Text>
-        <FlatList
-          contentContainerStyle={modalStyle.modalFlatlistContiner}
-          data={devices}
-          renderItem={renderDeviceModalListItem}
-        />
-      </SafeAreaView>
-    </Modal> */}
-
 const modalStyle = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#f2f2f2',
-  },
   modalFlatlistContiner: {
-    flex: 1,
     justifyContent: 'center',
-  },
-  modalCellOutline: {
-    borderWidth: 1,
-    borderColor: 'black',
     alignItems: 'center',
-    marginHorizontal: 20,
-    paddingVertical: 15,
-    borderRadius: 8,
-  },
-  modalTitle: {
-    flex: 1,
-    backgroundColor: '#f2f2f2',
-  },
-  modalTitleText: {
-    marginTop: 40,
-    fontSize: 30,
-    fontWeight: 'bold',
-    marginHorizontal: 20,
-    textAlign: 'center',
+    width: '100%',
+    gap: 10,
+    marginTop: 20,
+    marginBottom: 20,
   },
   ctaButton: {
-    backgroundColor: '#FF6060',
+    backgroundColor: colors.blue,
     justifyContent: 'center',
     alignItems: 'center',
+    width: 300,
     height: 50,
     marginHorizontal: 20,
     marginBottom: 5,
-    borderRadius: 8,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   ctaButtonText: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     color: 'white',
   },
